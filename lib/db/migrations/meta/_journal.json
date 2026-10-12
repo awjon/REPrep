@@ -15,6 +15,13 @@
       "when": 1791847752497,
       "tag": "0001_deal_schedule_inputs",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791849004371,
+      "tag": "0002_review_verification",
+      "breakpoints": true
     }
   ]
 }

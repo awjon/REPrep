@@ -195,6 +195,7 @@ export const reviewRuns = pgTable(
     outputTokens: integer('output_tokens').notNull().default(0),
     costUsd: numeric('cost_usd', { precision: 10, scale: 4 }).notNull().default('0'),
     findingsDropped: integer('findings_dropped').notNull().default(0),
+    pagesReviewed: integer('pages_reviewed').notNull().default(0),
     error: text('error'),
     startedAt: createdAt(),
     finishedAt: timestamp('finished_at', { withTimezone: true }),
@@ -219,6 +220,9 @@ export const reviewFindings = pgTable(
     summary: text('summary').notNull(),
     page: integer('page').notNull(),
     quote: text('quote').notNull(),
+    // true when the quote was found verbatim (normalized) on the cited page's extracted text;
+    // false only for pages with no text layer (scanned), which the UI labels as unverified.
+    quoteVerified: boolean('quote_verified').notNull().default(false),
     questionToAsk: text('question_to_ask').notNull(),
   },
   (t) => [

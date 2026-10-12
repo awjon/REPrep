@@ -14,14 +14,17 @@
     "gate": "npm run typecheck && npm run lint && npm run test && node --test n8n/workflows.test.mjs && npm run build"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.58.0",
     "drizzle-orm": "^0.44.6",
     "next": "15.5.27",
+    "pdf-lib": "^1.17.1",
     "postgres": "^3.4.7",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "server-only": "^0.0.1",
+    "unpdf": "^1.8.1",
     "zod": "^3.25.76"
   },
   "devDependencies": {
