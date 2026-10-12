@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "vitest run --coverage",
     "test:db": "vitest run --config vitest.db.config.ts",
     "db:generate": "drizzle-kit generate",
     "gate": "npm run typecheck && npm run lint && npm run test && node --test n8n/workflows.test.mjs && npm run build"

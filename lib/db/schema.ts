@@ -20,6 +20,7 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
 import { authenticatedRole, authUsers } from 'drizzle-orm/supabase';
@@ -93,6 +94,11 @@ export const deals = pgTable(
     listPrice: integer('list_price'), // whole dollars
     notes: text('notes'),
     mutualAcceptanceAt: timestamp('mutual_acceptance_at', { withTimezone: true }),
+    // Inputs to the deadline engine (lib/deadlines). deal_dates rows are derived from these.
+    form17ReceivedOn: date('form17_received_on'),
+    closingDate: date('closing_date'),
+    possessionDaysAfterClosing: integer('possession_days_after_closing').notNull().default(0),
+    periodOverrides: jsonb('period_overrides').$type<Record<string, number | null>>().notNull().default({}),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
@@ -125,6 +131,8 @@ export const dealDates = pgTable(
     unique('deal_dates_id_user_unique').on(t.id, t.userId),
     index('deal_dates_deal_idx').on(t.dealId),
     index('deal_dates_due_idx').on(t.dueAt),
+    // One engine-managed row per kind per deal; custom rows are free-form.
+    uniqueIndex('deal_dates_one_per_kind').on(t.dealId, t.kind).where(sql`kind <> 'custom'`),
     ownerOnly('deal_dates'),
   ],
 ).enableRLS();
