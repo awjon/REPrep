@@ -1,0 +1,216 @@
+{
+  "name": "REPrep — King County Ingest",
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Los_Angeles",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true
+  },
+  "nodes": [
+    {
+      "id": "c4d2e5b0-0002-4d2b-8b02-000000000001",
+      "name": "Weekly Sun 03:07 PT",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0],
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "field": "cronExpression", "expression": "7 3 * * 0" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "c4d2e5b0-0002-4d2b-8b02-000000000002",
+      "name": "Manual test",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 200],
+      "parameters": {}
+    },
+    {
+      "id": "c4d2e5b0-0002-4d2b-8b02-000000000003",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [240, 100],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            { "id": "cfg-runner", "name": "runnerUrl", "value": "http://reprep-ingest:8080", "type": "string" },
+            { "id": "cfg-force", "name": "force", "value": false, "type": "boolean" },
+            {
+              "id": "cfg-sources",
+              "name": "sources",
+              "value": "={{ [ { name: 'sales', url: 'https://aqua.kingcounty.gov/extranet/assessor/Real%20Property%20Sales.zip' }, { name: 'parcel', url: 'https://aqua.kingcounty.gov/extranet/assessor/Parcel.zip' }, { name: 'resbldg', url: 'https://aqua.kingcounty.gov/extranet/assessor/Residential%20Building.zip' }, { name: 'lookup', url: 'https://aqua.kingcounty.gov/extranet/assessor/Lookup.zip' } ] }}",
+              "type": "array"
+            },
+            { "id": "cfg-notify", "name": "notifyEmail", "value": "automatewithjon@gmail.com", "type": "string" }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "c4d2e5b0-0002-4d2b-8b02-000000000004",
+      "name": "Run ingest",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 100],
+      "retryOnFail": false,
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config').item.json.runnerUrl }}/run",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ force: $('Config').item.json.force, sources: $('Config').item.json.sources }) }}",
+        "options": {
+          "timeout": 1800000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": { "name": "REPrep Ingest Token" }
+      }
+    },
+    {
+      "id": "c4d2e5b0-0002-4d2b-8b02-000000000005",
+      "name": "Ingest OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [720, 0],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose", "version": 2 },
+          "conditions": [
+            {
+              "id": "ok-status",
+              "leftValue": "={{ $json.statusCode }}",
+              "rightValue": 200,
+              "operator": { "type": "number", "operation": "equals" }
+            },
+            {
+              "id": "ok-body",
+              "leftValue": "={{ $json.body.ok }}",
+              "rightValue": "",
+              "operator": { "type": "boolean", "operation": "true", "singleValue": true }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "c4d2e5b0-0002-4d2b-8b02-000000000006",
+      "name": "Anything changed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [960, -100],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose", "version": 2 },
+          "conditions": [
+            {
+              "id": "changed-nonempty",
+              "leftValue": "={{ $json.body.changed }}",
+              "rightValue": "",
+              "operator": { "type": "array", "operation": "notEmpty", "singleValue": true }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "c4d2e5b0-0002-4d2b-8b02-000000000007",
+      "name": "Notify: data refreshed",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1200, -200],
+      "parameters": {
+        "sendTo": "={{ $('Config').item.json.notifyEmail }}",
+        "subject": "=REPrep: King County data refreshed ({{ $json.body.changed.join(', ') }})",
+        "emailType": "text",
+        "message": "=Weekly King County ingest finished at {{ $now.toFormat('yyyy-LL-dd HH:mm') }} PT.\n\nChanged: {{ $json.body.changed.join(', ') }}\nUnchanged: {{ ($json.body.unchanged || []).join(', ') || 'none' }}\nRows loaded: {{ Object.entries($json.body.rows || {}).map(([k, v]) => k + '=' + v).join(', ') }}\nDuration: {{ Math.round(($json.body.durationMs || 0) / 1000) }} s\n\nSpot-check comps on one known property before trusting new numbers.",
+        "options": { "appendAttribution": false }
+      },
+      "credentials": {
+        "gmailOAuth2": { "name": "Gmail account" }
+      }
+    },
+    {
+      "id": "c4d2e5b0-0002-4d2b-8b02-000000000008",
+      "name": "No change",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1200, 0],
+      "parameters": {}
+    },
+    {
+      "id": "c4d2e5b0-0002-4d2b-8b02-000000000009",
+      "name": "Alert: ingest failed",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [960, 250],
+      "parameters": {
+        "sendTo": "={{ $('Config').item.json.notifyEmail }}",
+        "subject": "=REPrep King County ingest FAILED{{ $json.body && $json.body.source ? ' (' + $json.body.source + ')' : '' }}",
+        "emailType": "text",
+        "message": "=The weekly ingest did not complete at {{ $now.toFormat('yyyy-LL-dd HH:mm') }} PT. The previous data is still in place.\n\nRunner: {{ $('Config').item.json.runnerUrl }}/run\nHTTP status: {{ $json.statusCode ?? 'none (runner unreachable or timed out)' }}\nDetail: {{ JSON.stringify($json.body ?? $json.error ?? $json).slice(0, 1500) }}\n\nCheck: `docker ps` for reprep-ingest on Firebat, its logs, the REPrep Ingest Token credential, and whether the county moved a download URL (Config.sources).",
+        "options": { "appendAttribution": false }
+      },
+      "credentials": {
+        "gmailOAuth2": { "name": "Gmail account" }
+      }
+    }
+  ],
+  "connections": {
+    "Weekly Sun 03:07 PT": {
+      "main": [[{ "node": "Config", "type": "main", "index": 0 }]]
+    },
+    "Manual test": {
+      "main": [[{ "node": "Config", "type": "main", "index": 0 }]]
+    },
+    "Config": {
+      "main": [[{ "node": "Run ingest", "type": "main", "index": 0 }]]
+    },
+    "Run ingest": {
+      "main": [
+        [{ "node": "Ingest OK?", "type": "main", "index": 0 }],
+        [{ "node": "Alert: ingest failed", "type": "main", "index": 0 }]
+      ]
+    },
+    "Ingest OK?": {
+      "main": [
+        [{ "node": "Anything changed?", "type": "main", "index": 0 }],
+        [{ "node": "Alert: ingest failed", "type": "main", "index": 0 }]
+      ]
+    },
+    "Anything changed?": {
+      "main": [
+        [{ "node": "Notify: data refreshed", "type": "main", "index": 0 }],
+        [{ "node": "No change", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "pinData": {},
+  "tags": []
+}
