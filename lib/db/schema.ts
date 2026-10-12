@@ -9,6 +9,7 @@ import { sql } from 'drizzle-orm';
 import {
   boolean,
   date,
+  doublePrecision,
   foreignKey,
   index,
   integer,
@@ -17,6 +18,7 @@ import {
   pgEnum,
   pgPolicy,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   unique,
@@ -268,4 +270,96 @@ export const termSheets = pgTable(
     unique('term_sheets_one_per_deal').on(t.dealId),
     ownerOnly('term_sheets'),
   ],
+).enableRLS();
+
+// ---------- King County reference data (loaded by ingest/, read-only to the app) ----------
+// No user_id. RLS on, with a read-all policy for signed-in users; only the database owner
+// (the ingest runner's connection) writes. Column meanings follow the Assessor's extract docs.
+
+const readAll = (table: string) =>
+  pgPolicy(`${table}_read_all`, { as: 'permissive', for: 'select', to: authenticatedRole, using: sql`true` });
+
+export const kcParcels = pgTable(
+  'kc_parcels',
+  {
+    pin: text('pin').primaryKey(), // Major (6) + Minor (4)
+    area: integer('area'),
+    subArea: integer('sub_area'),
+    propType: text('prop_type'),
+    presentUse: integer('present_use'),
+    sqFtLot: integer('sq_ft_lot'),
+    currentZoning: text('current_zoning'),
+    districtName: text('district_name'),
+    address: text('address'), // normalized uppercase street address, when known
+    zip: text('zip'),
+    lat: doublePrecision('lat'),
+    lon: doublePrecision('lon'),
+    loadedAt: timestamp('loaded_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('kc_parcels_area_idx').on(t.area, t.subArea),
+    index('kc_parcels_latlon_idx').on(t.lat, t.lon),
+    index('kc_parcels_address_idx').on(t.address),
+    readAll('kc_parcels'),
+  ],
+).enableRLS();
+
+export const kcResBuildings = pgTable(
+  'kc_res_buildings',
+  {
+    pin: text('pin').notNull(),
+    bldgNbr: integer('bldg_nbr').notNull(),
+    address: text('address'),
+    zip: text('zip'),
+    nbrLivingUnits: integer('nbr_living_units'),
+    stories: numeric('stories', { precision: 3, scale: 1 }),
+    bldgGrade: integer('bldg_grade'),
+    sqFtTotLiving: integer('sq_ft_tot_living'),
+    sqFtTotBasement: integer('sq_ft_tot_basement'),
+    sqFtFinBasement: integer('sq_ft_fin_basement'),
+    bedrooms: integer('bedrooms'),
+    bathFull: integer('bath_full'),
+    bath3qtr: integer('bath_3qtr'),
+    bathHalf: integer('bath_half'),
+    yrBuilt: integer('yr_built'),
+    yrRenovated: integer('yr_renovated'),
+    condition: integer('condition'),
+  },
+  (t) => [primaryKey({ columns: [t.pin, t.bldgNbr] }), readAll('kc_res_buildings')],
+).enableRLS();
+
+export const kcSales = pgTable(
+  'kc_sales',
+  {
+    exciseTaxNbr: text('excise_tax_nbr').notNull(),
+    pin: text('pin').notNull(),
+    documentDate: date('document_date').notNull(),
+    salePrice: integer('sale_price').notNull(),
+    propertyType: integer('property_type'),
+    principalUse: integer('principal_use'),
+    saleInstrument: integer('sale_instrument'),
+    saleReason: integer('sale_reason'),
+    propertyClass: integer('property_class'),
+    saleWarning: text('sale_warning'), // space-separated warning codes; non-empty usually means not arm's-length
+  },
+  (t) => [
+    primaryKey({ columns: [t.exciseTaxNbr, t.pin] }),
+    index('kc_sales_pin_idx').on(t.pin),
+    index('kc_sales_date_idx').on(t.documentDate),
+    readAll('kc_sales'),
+  ],
+).enableRLS();
+
+// Change detection for the weekly ingest. Owner-only: RLS on, no policies.
+export const ingestRuns = pgTable(
+  'ingest_runs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    source: text('source').notNull(),
+    etag: text('etag'),
+    lastModified: text('last_modified'),
+    rows: integer('rows').notNull(),
+    loadedAt: timestamp('loaded_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('ingest_runs_source_idx').on(t.source, t.loadedAt)],
 ).enableRLS();
