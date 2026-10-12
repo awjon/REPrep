@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+/* Warm paper + ink, one deep-green accent. System fonts only (no build-time font fetch). */
+:root {
+  --paper: #f7f5f0;
+  --panel: #ffffff;
+  --ink: #1c1b18;
+  --muted: #6b675e;
+  --line: #e2ddd2;
+  --accent: #1f5b45;
+  --warn: #9a5b00;
+  --danger: #a3271c;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #141412;
+    --panel: #1d1c19;
+    --ink: #ecebe6;
+    --muted: #a19d93;
+    --line: #34322d;
+    --accent: #4fae86;
+    --warn: #e0a345;
+    --danger: #f07a6c;
+  }
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-panel: var(--panel);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}

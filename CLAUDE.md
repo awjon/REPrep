@@ -57,6 +57,8 @@ MODEL_REVIEW=claude-sonnet-5-5
 MODEL_TRIAGE=claude-haiku-4-5-20251001
 RESEND_API_KEY
 JOBS_TOKEN                   # bearer token n8n sends to /api/jobs/* (see docs/jobs-contract.md)
+ALLOWED_EMAILS               # comma-separated; only these can sign in while FEATURE_PUBLIC_SIGNUP=false
+EMAIL_FROM, APP_URL          # reminder sender and the absolute app URL used in emails
 STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET   # Phase B
 FEATURE_PUBLIC_SIGNUP=false  # Phase B switch
 ```
@@ -162,7 +164,8 @@ Orchestrator rules:
 ## 6. Working conventions
 
 - **TDD.** Failing test first, then implementation. No test, no merge.
-- **Gate before every commit:** `npm run typecheck && npm run lint && npm run test && npm run build`.
+- **Gate before every commit:** `npm run gate` (typecheck, lint, unit, n8n, build). Schema or data-access changes also run `scripts/test-db.sh start && npm run test:db` (local Postgres + PostGIS with a Supabase shim).
+- All user data access goes through `withUser(userId, tx => …)` so RLS applies. `adminDb()` bypasses RLS and is only for `/api/jobs/*`.
 - Each milestone ends with a Vercel preview deploy that Jon can click through.
 - Small PRs, conventional commits, feature branches off `main`.
 - Zod at every boundary: form input, API input, LLM output, ingest rows.

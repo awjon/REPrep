@@ -47,16 +47,6 @@ function configOf(wf) {
   return out;
 }
 
-function stringParams(node) {
-  const out = [];
-  const walk = (v) => {
-    if (typeof v === 'string') out.push(v);
-    else if (v && typeof v === 'object') Object.values(v).forEach(walk);
-  };
-  walk(node.parameters);
-  return out;
-}
-
 // ---------- graph helpers ----------
 
 function targets(wf, name) {
