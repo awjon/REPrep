@@ -15,22 +15,16 @@ export function normalizeForMatch(text: string): string {
     .trim();
 }
 
-/** True when the quote (or each part of a quote split by an ellipsis) appears, in order, in the page text. */
+/** Minimum evidence for a citation: a short generic phrase ("the seller") proves nothing. */
+export const MIN_QUOTE_WORDS = 4;
+export const MIN_QUOTE_CHARS = 20;
+
+/** True when the quote is one continuous passage of the page text (after normalization). */
 export function quoteOnPage(quote: string, pageText: string): boolean {
-  const page = normalizeForMatch(pageText);
-  const parts = quote
-    .split(/\.\.\.|…/)
-    .map(normalizeForMatch)
-    .filter((p) => p.length > 0);
-  if (parts.length === 0) return false;
-  let from = 0;
-  for (const part of parts) {
-    if (part.length < 8) return false; // too short to verify meaningfully
-    const at = page.indexOf(part, from);
-    if (at === -1) return false;
-    from = at + part.length;
-  }
-  return true;
+  if (/\.\.\.|…/.test(quote)) return false; // stitched fragments are not a citation
+  const q = normalizeForMatch(quote);
+  if (q.length < MIN_QUOTE_CHARS || q.split(' ').length < MIN_QUOTE_WORDS) return false;
+  return normalizeForMatch(pageText).includes(q);
 }
 
 export type ChunkResult = {

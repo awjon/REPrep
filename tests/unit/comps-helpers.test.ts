@@ -134,7 +134,7 @@ describe('comps copy is descriptive', () => {
     const lines = statsSentences(computeStats(comps, 1840), 1840);
     expect(lines[0]).toBe('Comparable recorded sales: 14.');
     expect(lines[1]).toMatch(/^Price per living sq ft: median \$\d+, middle half \$\d+–\$\d+\.$/);
-    expect(lines[2]).toMatch(/^Applied to this home's 1,840 sq ft: \$[\d,]+–\$[\d,]+\.$/);
+    expect(lines[2]).toMatch(/^Middle-half price per sq ft × this home's 1,840 sq ft = \$[\d,]+–\$[\d,]+ \(arithmetic only, not a valuation\)\.$/);
     for (const l of lines) expect(findBanned(l)).toEqual([]);
   });
   it('the too-few note is clean and the comps disclaimer stands', () => {

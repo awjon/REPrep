@@ -86,7 +86,7 @@ export async function runReminders(db: Db, opts: Opts): Promise<ReminderRunResul
       .insert(reminderSends)
       .values(items.map((i) => ({ userId, dealDateId: i.dealDateId, offsetKey: i.offsetKey })))
       .onConflictDoNothing()
-      .returning({ id: reminderSends.id, dealDateId: reminderSends.dealDateId });
+      .returning({ id: reminderSends.id, dealDateId: reminderSends.dealDateId, offsetKey: reminderSends.offsetKey });
     result.skipped += items.length - claimed.length;
     if (claimed.length === 0) continue;
 
@@ -99,7 +99,11 @@ export async function runReminders(db: Db, opts: Opts): Promise<ReminderRunResul
 
     let res: Awaited<ReturnType<SendFn>>;
     try {
-      res = await send({ to: first.email, subject, text, html });
+      const idempotencyKey = `reminders/${claimed
+        .map((c) => `${c.dealDateId}:${c.offsetKey}`)
+        .sort()
+        .join(',')}`.slice(0, 256);
+      res = await send({ to: first.email, subject, text, html, idempotencyKey });
     } catch {
       res = { ok: false, reason: 'send_exception' };
     }

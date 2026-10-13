@@ -14,7 +14,7 @@ export function statsSentences(stats: CompStats, subjectSqFt: number | null): st
   }
   if (stats.range && subjectSqFt) {
     out.push(
-      `Applied to this home's ${int(subjectSqFt)} sq ft: ${usd(stats.range.low)}–${usd(stats.range.high)}.`,
+      `Middle-half price per sq ft × this home's ${int(subjectSqFt)} sq ft = ${usd(stats.range.low)}–${usd(stats.range.high)} (arithmetic only, not a valuation).`,
     );
   } else if (stats.rangeNote) {
     out.push(stats.rangeNote);

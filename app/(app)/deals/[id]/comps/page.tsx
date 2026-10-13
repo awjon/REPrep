@@ -157,8 +157,9 @@ export default async function CompsPage({
                           <p className="font-medium">Saved {when}</p>
                           <p className="text-muted">
                             {r.stats?.count ?? 0} comparable sales
-                            {r.stats?.range ? `, range ${usd(r.stats.range.low)}–${usd(r.stats.range.high)}` : ''}
-                            {r.subjectSqFt ? ` for ${int(r.subjectSqFt)} sq ft` : ''}
+                            {r.stats?.range && r.subjectSqFt
+                              ? `, middle-half $/sq ft × ${int(r.subjectSqFt)} sq ft = ${usd(r.stats.range.low)}–${usd(r.stats.range.high)} (arithmetic only, not a valuation)`
+                              : ''}
                           </p>
                         </div>
                         <a

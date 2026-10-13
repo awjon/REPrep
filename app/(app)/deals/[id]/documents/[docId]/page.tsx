@@ -77,6 +77,7 @@ export default async function DocumentReportPage({ params }: { params: Promise<{
             <h2 id="findings-heading" className="font-display text-lg">
               Findings
             </h2>
+            <p className="mt-1 text-sm text-muted">Grouped by how prominently each item appears in the document, not by how much it matters to you.</p>
             {groups.length === 0 && <p className="text-sm text-muted">No findings with a matching page citation.</p>}
             {groups.map((g) => (
               <div key={g.sev} className="space-y-3">

@@ -18,6 +18,15 @@ describe('banned phrases', () => {
     "It's safe to waive this contingency.",
     "You don't need an attorney for this.",
     'You need to sign by Friday.',
+    // leaked past v1 of the filter (independent review, 2026-10-12)
+    'Ask the seller for a price reduction to cover the sewer repair.',
+    'Ask the seller to credit you $8,000 at closing.',
+    'This is a significant defect.',
+    'This easement violates the setback rules.',
+    'Consider waiving the inspection contingency.',
+    'Use this finding as leverage in negotiations.',
+    'This could justify a lower offer.',
+    'Ask the seller to repair the furnace before closing.',
   ])('flags: %s', (text) => {
     expect(isClean(text)).toBe(false);
   });
@@ -30,6 +39,9 @@ describe('banned phrases', () => {
     'Inspection contingency ends Oct 19 at 9:00 pm. Computed — confirm against your contract.',
     'Not legal advice. Confirm with a Washington real estate attorney.',
     'The seller marked "unknown" for the septic question.',
+    'Ask the seller when the furnace was last serviced and whether records exist.',
+    'Ask your inspector whether the panel brand has known service issues.',
+    'The report lists granule loss on the south roof slope.',
   ])('allows: %s', (text) => {
     expect(findBanned(text)).toEqual([]);
   });

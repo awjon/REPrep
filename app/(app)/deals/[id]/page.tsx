@@ -36,7 +36,7 @@ export default async function DealOverviewPage({ params }: { params: Promise<{ i
         </summary>
         <form action={deleteDealAction.bind(null, id)} className="space-y-3 border-t border-line p-4">
           <p className="text-sm">
-            This removes the property, its notes and all of its deadlines. It cannot be undone.
+            This removes the property, its notes, its deadlines, its uploaded documents and their reviews, and saved comparable sales and term sheet. It cannot be undone.
           </p>
           <SubmitButton variant="danger" pendingLabel="Deleting…">
             Yes, delete this property

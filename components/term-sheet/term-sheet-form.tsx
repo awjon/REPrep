@@ -66,7 +66,7 @@ export function TermSheetForm({
         />
         <TextField label="Earnest money (whole dollars)" name="earnestMoney" inputMode="numeric" defaultValue={v.earnestMoney} error={e.earnestMoney} />
         <TextField label="Seller credit requested (optional)" name="sellerCredit" inputMode="numeric" defaultValue={v.sellerCredit} error={e.sellerCredit} />
-        <Check name="escalation_enabled" label="Include an escalation clause in this summary" checked={on('escalation_enabled')} />
+        <Check name="escalation_enabled" label="Include escalation in this summary" checked={on('escalation_enabled')} />
         <div className="grid gap-4 sm:grid-cols-2">
           <TextField label="Escalation increment" name="escalation_increment" inputMode="numeric" defaultValue={v.escalation_increment} error={e.escalation_increment} />
           <TextField label="Escalation cap" name="escalation_cap" inputMode="numeric" defaultValue={v.escalation_cap} error={e.escalation_cap} />
@@ -114,7 +114,7 @@ export function TermSheetForm({
           name="sellerDisclosureNote"
           rows={2}
           defaultValue={v.sellerDisclosureNote}
-          hint="The seller disclosure review appears on the PDF as the statutory review period. Add a note for your attorney if useful."
+          hint="The seller disclosure review appears on the PDF as the seller disclosure review period. Add a note for your attorney if useful."
           error={e.sellerDisclosureNote}
         />
       </fieldset>

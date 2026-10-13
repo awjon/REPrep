@@ -49,7 +49,8 @@ export default async function DealsPage() {
                   {next ? (
                     <>
                       Next: {next.label} · <span className="tabular">{formatPacific(next.dueAt)}</span> (
-                      {relativeDue(next.dueAt, now)})
+                      {relativeDue(next.dueAt, now)}) ·{' '}
+                      {next.isOverridden ? 'from your contract' : next.kind === 'custom' ? 'added by you' : 'computed, confirm against your contract'}
                     </>
                   ) : (
                     'No upcoming deadlines'

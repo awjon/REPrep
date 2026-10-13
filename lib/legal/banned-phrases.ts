@@ -17,6 +17,16 @@ export const BANNED_PATTERNS: readonly { id: string; re: RegExp; why: string }[]
   { id: 'walk-away', re: /\b(walk\s+away|back\s+out|terminate\s+the\s+(deal|contract|agreement))\b/i, why: 'directs a legal action' },
   { id: 'legal-conclusion', re: /\b(this\s+is|constitutes)\s+(a\s+)?(material\s+)?(defect|breach|violation)\b/i, why: 'legal conclusion' },
   { id: 'safe-to', re: /\b(it\s+is|it's)\s+(safe|fine|ok(ay)?)\s+to\s+(waive|skip|ignore|sign)\b/i, why: 'advice to waive' },
+  { id: 'defect-word', re: /\bdefect(s|ive)?\b/i, why: 'legal/condition conclusion' },
+  { id: 'violation-word', re: /\b(violat(e|es|ed|ion|ions)|illegal|unlawful|non-?compliant)\b/i, why: 'legal conclusion' },
+  { id: 'ask-seller-concession', re: /\bask\s+(the\s+)?(seller|sellers|listing\s+agent)\s+(for|to)\s+(a\s+|an\s+)?(credit|reduc|lower|repair|fix|replace|pay|cover|concession|discount|cut)/i, why: 'negotiation request' },
+  { id: 'credit-you', re: /\bcredit\s+(you|the\s+buyer)\b/i, why: 'negotiation request' },
+  { id: 'price-reduction', re: /\bprice\s+(reduction|cut|drop)\b/i, why: 'price advice' },
+  { id: 'lower-offer', re: /\b(lower|reduced|higher)\s+(offer|price|bid)\b/i, why: 'price advice' },
+  { id: 'leverage', re: /\b(leverage|bargaining\s+chip)\b/i, why: 'negotiation advice' },
+  { id: 'negotiate', re: /\bnegotiat\w*/i, why: 'negotiation advice' },
+  { id: 'consider-action', re: /\bconsider\s+(waiving|terminating|walking|renegotiat\w*|backing|cancel\w*|withdraw\w*)/i, why: 'directs a legal action' },
+  { id: 'justify', re: /\bjustif(y|ies|ied)\b(?!-)/i, why: 'price advice' },
   { id: 'dont-need-attorney', re: /\b(don't|do\s+not|no)\s+need\s+(an?\s+)?(attorney|lawyer|inspector)\b/i, why: 'discourages professional help' },
 ];
 

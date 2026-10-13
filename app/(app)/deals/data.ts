@@ -21,11 +21,11 @@ export async function listDealsWithNext(userId: string) {
   return withUser(userId, async (tx) => {
     const deals = await tx.select().from(schema.deals).orderBy(desc(schema.deals.updatedAt));
     const upcoming = await tx
-      .select({ dealId: schema.dealDates.dealId, label: schema.dealDates.label, dueAt: schema.dealDates.dueAt })
+      .select({ dealId: schema.dealDates.dealId, label: schema.dealDates.label, dueAt: schema.dealDates.dueAt, kind: schema.dealDates.kind, isOverridden: schema.dealDates.isOverridden })
       .from(schema.dealDates)
       .where(and(isNull(schema.dealDates.completedAt), gte(schema.dealDates.dueAt, now)))
       .orderBy(asc(schema.dealDates.dueAt));
-    const next = new Map<string, { label: string; dueAt: Date }>();
+    const next = new Map<string, { label: string; dueAt: Date; kind: string; isOverridden: boolean }>();
     for (const u of upcoming) if (!next.has(u.dealId)) next.set(u.dealId, u);
     return deals.map((d) => ({ deal: d, next: next.get(d.id) ?? null }));
   });

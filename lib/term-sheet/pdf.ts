@@ -184,8 +184,8 @@ export async function renderTermSheetPdf(data: TermSheetData, opts: { preparedOn
   row(
     'Seller disclosure review',
     c.sellerDisclosureNote
-      ? `Shown as the statutory review period. Note: ${c.sellerDisclosureNote}`
-      : 'Shown as the statutory review period.',
+      ? `Seller disclosure review period. Note: ${c.sellerDisclosureNote}`
+      : 'Seller disclosure review period.',
   );
 
   heading('Dates');

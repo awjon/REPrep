@@ -36,7 +36,7 @@ Two phases, one codebase. Phase A is Jon's own purchase tool. Phase B opens it t
 |---|---|---|
 | Framework | Next.js 15 App Router, TypeScript strict, React Server Components | Server Actions for mutations |
 | UI | Tailwind + shadcn/ui | Mobile-first; used on a phone at open houses |
-| DB | Supabase Postgres + PostGIS, Drizzle ORM | PostGIS for comps radius and parcel overlays |
+| DB | Supabase Postgres, Drizzle ORM | Comps radius uses lat/lon + bounding box + haversine (no PostGIS). Local tests use Postgres 16 with a Supabase shim |
 | Auth | Supabase Auth, magic link only | One vendor; RLS works natively |
 | Files | Supabase Storage, private buckets, signed URLs | Browser uploads direct to storage — Vercel bodies cap at ~4.5 MB |
 | LLM | Anthropic API via `@anthropic-ai/sdk`, server-side only | Model IDs come from env, never hardcoded |
@@ -78,7 +78,9 @@ These exist because crossing them is unlicensed brokerage or unauthorized practi
 6. **Date rules are defaults, not law.** The deadline engine ships with editable defaults and labels each date "computed — confirm against your contract".
 7. **User documents are private.** Private bucket, RLS on every table, hard delete on request, no document text in logs or analytics.
 
-Any PR touching `lib/review/prompts/`, `lib/deadlines/rules/`, or user-facing analytical copy needs the guardrail review in §5.
+Any PR touching `lib/review/prompts/`, `lib/deadlines/rules/`, `lib/legal/`, or user-facing analytical copy needs the guardrail review in §5. Prompt changes also need `npm run eval:review` (live, ~$0.05) and a `SHARED_VERSION`/type version bump.
+
+Enforcement in code: `lib/legal/banned-phrases.ts` (regexes; add every phrase that ever leaks as a test case), `tests/unit/copy-lint.test.ts` (scans app/, components/, lib/{legal,email,comps,lot,term-sheet,documents,deals}), and `lib/review/validate.ts` (quotes must be one continuous passage of ≥4 words / ≥20 normalized chars found on the cited page; no ellipses).
 
 ---
 
@@ -126,11 +128,11 @@ Long documents: split into page ranges under the API's per-request PDF limits, r
 ### Comps
 - Source: King County Assessor bulk extracts (real property sales, parcel, residential building). Confirm current download location and licence terms at build time.
 - Ingest is a small container on Firebat (`ingest/`), triggered weekly by n8n over the internal Docker network, loading to Postgres via staging tables and an atomic swap. Vercel never downloads bulk files.
-- Query: radius + recency + same property type, filtered by living area, lot size, year built, bed/bath bands. Exclude non-arm's-length sales using the county's sale-warning codes.
+- Query: radius (lat/lon from the optional `addresses` source) or assessor area/sub-area, recency, single building, unit match, living-area band, optional year/bed filters. Excludes sales with any sale-warning code and multi-parcel sales. Assessor numeric code filters stay off until checked against the Lookup extract (`lib/comps/codes.ts`).
 - Output: the comp list, median and interquartile $/sqft, and a range. Show the method. No point estimate labelled as "value".
 
 ### Lot screen
-Parcel lookup → zoning designation, lot area, lot coverage, ECA overlays (steep slope, liquefaction, shoreline). Emit **flags** ("lot under X sq ft", "steep slope overlay present"), not a yes/no on whether a DADU is permitted. Source: Seattle GIS open data.
+Parcel lookup → zoning on record, lot area, jurisdiction, units, from King County Assessor records; ECA overlays from official City of Seattle ArcGIS layers configured in `SEATTLE_ECA_LAYERS` ("not checked" when unset). Emit **flags** that restate records, never a yes/no on whether a DADU is permitted, and link to SDCI.
 
 ---
 
@@ -191,6 +193,8 @@ Orchestrator rules:
 M0–M4 is the personal tool. Do not start M5 without Jon.
 
 ---
+
+First-time account setup lives in `SETUP.md`.
 
 ## 8. Open questions
 

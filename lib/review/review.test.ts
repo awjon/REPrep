@@ -25,9 +25,9 @@ describe('quote matching', () => {
   it.each([
     ['exact', 'The roof was replaced in 2011', true],
     ['different spacing/case', 'the ROOF   was replaced in 2011.', true],
-    ['ellipsis parts in order', 'Has the roof … replaced in 2011', true],
-    ['ellipsis parts out of order', 'replaced in 2011 ... Has the roof', false],
-    ['ellipsis part too short', 'Has the roof been ... 2011', false],
+    ['ellipsis (stitched fragments) rejected', 'Has the roof … was replaced in 2011', false],
+    ['too few words to prove anything', 'the roof was', false],
+    ['four words but too short', 'roof was in 2011', false],
     ['not on page', 'The roof was replaced in 2015', false],
     ['only punctuation', '......', false],
   ])('%s', (_l, quote, ok) => {

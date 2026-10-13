@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
 import { DISCLAIMER_TEXT } from '@/lib/legal/disclaimer';
 import { findBanned } from '@/lib/legal/banned-phrases';
 
-const ROOTS = ['app', 'components', 'lib/legal', 'lib/email'];
+const ROOTS = ['app', 'components', 'lib/legal', 'lib/email', 'lib/comps', 'lib/lot', 'lib/term-sheet', 'lib/documents', 'lib/deals'];
 
 function files(dir: string): string[] {
   let out: string[] = [];
@@ -50,7 +50,8 @@ describe('user-facing copy contains no advice language', () => {
   it('disclaimers are clean and mention not being advice', () => {
     for (const text of Object.values(DISCLAIMER_TEXT)) {
       expect(findBanned(text)).toEqual([]);
-      expect(text).toMatch(/not (legal advice|an appraisal|a determination|a contract)/i);
+      expect(text).toMatch(/not legal advice/i);
+      expect(text).toMatch(/Washington real estate attorney/);
     }
   });
 });

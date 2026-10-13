@@ -11,7 +11,7 @@ export const modelFinding = z.object({
   category: z.string().trim().min(2).max(60),
   summary: z.string().trim().min(10).max(500),
   page: z.number().int().min(1),
-  quote: z.string().trim().min(8).max(400),
+  quote: z.string().trim().min(20).max(400),
   question_to_ask: z.string().trim().min(10).max(300),
 });
 export type ModelFinding = z.infer<typeof modelFinding>;
