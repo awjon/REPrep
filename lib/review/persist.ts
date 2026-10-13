@@ -1,14 +1,27 @@
 // Review run bookkeeping. All functions take an RLS-scoped tx (withUser), so a user can only
 // start, finish, or read runs on their own documents.
 
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, lt } from 'drizzle-orm';
 import type { Tx } from '@/lib/db/rls';
 import { documents, reviewFindings, reviewRuns } from '@/lib/db/schema';
 import type { ReviewResult } from './pipeline';
 
-export async function startRun(tx: Tx, documentId: string, model: string): Promise<string> {
+/** A run still marked running after this long died with its function (Vercel maxDuration is 300 s). */
+export const STALE_RUN_MS = 10 * 60_000;
+
+export async function startRun(tx: Tx, documentId: string, model: string, now = new Date()): Promise<string> {
   const [doc] = await tx.select({ id: documents.id }).from(documents).where(eq(documents.id, documentId));
   if (!doc) throw new Error('document not found');
+  await tx
+    .update(reviewRuns)
+    .set({ status: 'failed', error: 'timeout', finishedAt: now })
+    .where(
+      and(
+        eq(reviewRuns.documentId, documentId),
+        eq(reviewRuns.status, 'running'),
+        lt(reviewRuns.startedAt, new Date(now.getTime() - STALE_RUN_MS)),
+      ),
+    );
   const running = await tx
     .select({ id: reviewRuns.id })
     .from(reviewRuns)

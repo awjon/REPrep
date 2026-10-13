@@ -3,6 +3,7 @@ import Link from 'next/link';
 const ITEMS = [
   { key: 'overview', label: 'Overview', href: (id: string) => `/deals/${id}` },
   { key: 'deadlines', label: 'Deadlines', href: (id: string) => `/deals/${id}/deadlines` },
+  { key: 'documents', label: 'Documents', href: (id: string) => `/deals/${id}/documents` },
 ] as const;
 
 export function DealNav({ dealId, active }: { dealId: string; active: (typeof ITEMS)[number]['key'] }) {

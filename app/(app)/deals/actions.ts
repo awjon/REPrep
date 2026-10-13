@@ -5,6 +5,9 @@ import { redirect } from 'next/navigation';
 import { requireUser } from '@/lib/auth';
 import { withUser } from '@/lib/db/client';
 import type { FormState } from '@/components/deals/form-state';
+import { eq } from 'drizzle-orm';
+import { documents } from '@/lib/db/schema';
+import { removeObjects } from '@/lib/storage/documents';
 import { createDeal, dealFieldsSchema, dealUpdateSchema, deleteDeal, fieldErrors, updateDeal } from '@/lib/deals/mutations';
 
 const strings = (form: FormData): Record<string, string> =>
@@ -44,7 +47,13 @@ export async function updateDealAction(dealId: string, _prev: FormState, form: F
 
 export async function deleteDealAction(dealId: string): Promise<void> {
   const user = await requireUser();
-  await withUser(user.id, (tx) => deleteDeal(tx, dealId));
+  await withUser(user.id, async (tx) => {
+    // Hard delete (CLAUDE.md §3.7): remove the deal's files from storage before the rows.
+    // If storage removal fails, the transaction aborts and the deal stays, so it can be retried.
+    const files = await tx.select({ path: documents.storagePath }).from(documents).where(eq(documents.dealId, dealId));
+    await removeObjects(files.map((f) => f.path));
+    await deleteDeal(tx, dealId);
+  });
   revalidatePath('/deals');
   redirect('/deals');
 }

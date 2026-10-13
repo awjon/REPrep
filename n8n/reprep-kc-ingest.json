@@ -47,7 +47,7 @@
             {
               "id": "cfg-sources",
               "name": "sources",
-              "value": "={{ [ { name: 'sales', url: 'https://aqua.kingcounty.gov/extranet/assessor/Real%20Property%20Sales.zip' }, { name: 'parcel', url: 'https://aqua.kingcounty.gov/extranet/assessor/Parcel.zip' }, { name: 'resbldg', url: 'https://aqua.kingcounty.gov/extranet/assessor/Residential%20Building.zip' }, { name: 'lookup', url: 'https://aqua.kingcounty.gov/extranet/assessor/Lookup.zip' } ] }}",
+              "value": "={{ [ { name: 'sales', url: 'https://aqua.kingcounty.gov/extranet/assessor/Real%20Property%20Sales.zip' }, { name: 'parcel', url: 'https://aqua.kingcounty.gov/extranet/assessor/Parcel.zip' }, { name: 'resbldg', url: 'https://aqua.kingcounty.gov/extranet/assessor/Residential%20Building.zip' }, { name: 'lookup', url: 'https://aqua.kingcounty.gov/extranet/assessor/Lookup.zip' }, { name: 'addresses', url: 'https://REPLACE-ME/king-county-parcel-addresses.csv' } ] }}",
               "type": "array"
             },
             { "id": "cfg-notify", "name": "notifyEmail", "value": "automatewithjon@gmail.com", "type": "string" }

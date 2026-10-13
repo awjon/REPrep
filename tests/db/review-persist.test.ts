@@ -73,6 +73,16 @@ describe('review persistence', () => {
     expect(latest!.findings).toEqual([]);
   });
 
+  it('a run left "running" past the stale limit is marked timed out and does not block a new run', async () => {
+    const later = new Date(Date.now() + 11 * 60_000);
+    const stuck = await withUser(db, U, (tx) => startRun(tx, documentId, 'claude-sonnet-5-5'));
+    const fresh = await withUser(db, U, (tx) => startRun(tx, documentId, 'claude-sonnet-5-5', later));
+    expect(fresh).not.toBe(stuck);
+    const [row] = await withUser(db, U, (tx) => tx.select().from(schema.reviewRuns).where(eq(schema.reviewRuns.id, stuck)));
+    expect(row).toMatchObject({ status: 'failed', error: 'timeout' });
+    await withUser(db, U, (tx) => failRun(tx, fresh, 'internal'));
+  });
+
   it('deleting the document removes runs and findings (hard delete)', async () => {
     await withUser(db, U, (tx) => tx.delete(schema.documents).where(eq(schema.documents.id, documentId)));
     const [{ n }] = (await client`select count(*)::int as n from review_findings f join review_runs r on r.id = f.run_id where r.document_id = ${documentId}`) as unknown as [{ n: number }];

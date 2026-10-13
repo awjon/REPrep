@@ -61,10 +61,13 @@ Request:
     { "name": "sales",   "url": "https://aqua.kingcounty.gov/extranet/assessor/Real%20Property%20Sales.zip" },
     { "name": "parcel",  "url": "https://aqua.kingcounty.gov/extranet/assessor/Parcel.zip" },
     { "name": "resbldg", "url": "https://aqua.kingcounty.gov/extranet/assessor/Residential%20Building.zip" },
-    { "name": "lookup",  "url": "https://aqua.kingcounty.gov/extranet/assessor/Lookup.zip" }
+    { "name": "lookup",  "url": "https://aqua.kingcounty.gov/extranet/assessor/Lookup.zip" },
+    { "name": "addresses", "url": "https://REPLACE-ME/king-county-parcel-addresses.csv" }
   ]
 }
 ```
+Sources are processed in the order parcel, resbldg, sales, addresses, lookup, whatever order the request lists them. `addresses` is optional: a CSV (or a zip holding one CSV) of parcel points with PIN, latitude, longitude, full address and ZIP; it updates `kc_parcels` lat/lon/address/zip by PIN. `lookup` is accepted and recorded in `ingest_runs` but loads nothing yet. Unknown source names are rejected with `400`.
+
 URLs are set in the n8n workflow's Config node so they can be fixed without a redeploy. **Confirm them against the Assessor's Data Download page before first activation** (CLAUDE.md open question #4).
 
 Response `200`:
@@ -82,4 +85,5 @@ Rules the runner must enforce:
 - Checks each source's `ETag` / `Last-Modified` against its last successful load and skips unchanged files unless `force: true`.
 - Loads into staging tables, validates row counts and required columns with zod, then swaps in one transaction. A failed load leaves the previous data in place.
 - Responds synchronously. n8n waits up to 30 minutes.
+- Only one run at a time; a concurrent call gets `409` with `{ "ok": false, "error": "busy" }`.
 - Any failure → non-200 with `{ "ok": false, "error": "short string", "source": "sales" }`.

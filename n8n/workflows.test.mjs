@@ -235,12 +235,12 @@ for (const key of ['appError', 'unauthorized', 'network']) {
   });
 }
 
-test('ingest: request body carries all four sources', () => {
+test('ingest: request body carries all five sources', () => {
   const http = ingest.nodes.find((n) => n.name === 'Run ingest');
   const ctx = { json: {}, nodes: { Config: configOf(ingest) } };
   const body = JSON.parse(evalExpr(http.parameters.jsonBody, ctx));
   assert.equal(body.force, false);
-  assert.deepEqual(body.sources.map((s) => s.name), ['sales', 'parcel', 'resbldg', 'lookup']);
+  assert.deepEqual(body.sources.map((s) => s.name), ['sales', 'parcel', 'resbldg', 'lookup', 'addresses']);
   for (const s of body.sources) assert.match(s.url, /^https:\/\//);
   assert.equal(evalExpr(http.parameters.url, ctx), 'http://reprep-ingest:8080/run');
 });

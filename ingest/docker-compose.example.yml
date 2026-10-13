@@ -1,0 +1,29 @@
+# Copy next to your n8n compose project (or merge into it) and adjust the network name.
+# The port is NOT published: only containers on the n8n network can reach it, at
+# http://reprep-ingest:8080. It is not behind the Cloudflare tunnel.
+services:
+  reprep-ingest:
+    build: .            # or: image: reprep-ingest:latest after `docker build -t reprep-ingest ingest/`
+    container_name: reprep-ingest
+    restart: unless-stopped
+    environment:
+      # Supabase DIRECT connection (db.<ref>.supabase.co:5432), owner role. Not the pooler: the run
+      # relies on session state (advisory lock, temp tables).
+      DATABASE_URL: ${REPREP_INGEST_DATABASE_URL}
+      INGEST_TOKEN: ${REPREP_INGEST_TOKEN}   # same value as n8n credential "REPrep Ingest Token"
+      # SALES_SINCE: "2015-01-01"
+      # CSV_ENCODING: latin1
+    volumes:
+      - reprep-ingest-tmp:/tmp                  # scratch space for downloaded zips (~1 GB peak)
+    networks: [n8n]
+    read_only: true
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 512m
+
+volumes:
+  reprep-ingest-tmp:
+
+networks:
+  n8n:
+    external: true
+    name: n8n_default   # `docker network ls` on Firebat; use the network n8n is attached to
